@@ -7,18 +7,19 @@ app.use(express.urlencoded({ extended: true }));
 
 app.get('/', (req, res) => {
     res.send(`
-        <style>body { font-family: sans-serif; padding: 20px; }</style>
-        <h2>Skicka ett mejl</h2>
+        <style>body { font-family: sans-serif; padding: 20px; text-align: center; }</style>
+        <h2>Mejl-appen ✉️</h2>
         <form action="/send" method="POST">
-            <input type="email" name="to" placeholder="Mottagarens mejl" required style="padding:10px; width:100%; max-width:300px;"><br><br>
-            <textarea name="message" placeholder="Ditt meddelande" style="padding:10px; width:100%; max-width:300px; height:100px;"></textarea><br><br>
-            <button type="submit" style="background:#007bff; color:white; border:none; padding:10px 20px; border-radius:5px;">Skicka mejl</button>
+            <input type="email" name="to" placeholder="Mottagarens mejl (t.ex. .com)" required style="padding:12px; width:80%; max-width:300px; border:1px solid #ccc; border-radius:5px;"><br><br>
+            <textarea name="message" placeholder="Skriv ditt meddelande här..." style="padding:12px; width:80%; max-width:300px; height:100px; border:1px solid #ccc; border-radius:5px;"></textarea><br><br>
+            <button type="submit" style="background:#28a745; color:white; border:none; padding:12px 25px; border-radius:5px; font-size:16px; cursor:pointer;">Skicka mejl nu!</button>
         </form>
     `);
 });
 
 app.post('/send', async (req, res) => {
     const { to, message } = req.body;
+    console.log(`Försöker skicka mejl till: ${to}`); // Detta syns i loggarna!
 
     const transporter = nodemailer.createTransport({
         service: 'gmail',
@@ -29,18 +30,19 @@ app.post('/send', async (req, res) => {
     });
 
     try {
-        await transporter.sendMail({
+        const info = await transporter.sendMail({
             from: process.env.EMAIL_USER,
             to: to,
-            subject: 'Test-mejl från min Node-app',
+            subject: 'Hälsning från min iPad-app!',
             text: message
         });
-        res.send('<h1>✅ Succé! Mejlet har skickats.</h1><a href="/">Skicka ett till</a>');
+        console.log('Mejl skickat ID:', info.messageId);
+        res.send('<h1>✅ Det funkade! Kolla din inkorg.</h1><a href="/">Skicka ett till</a>');
     } catch (error) {
-        // Detta skriver ut det EXAKTA felet så vi kan se vad som är fel
-        res.status(500).send(`<h1>❌ Det gick inte!</h1><p>Felmeddelande: ${error.message}</p><a href="/">Försök igen</a>`);
+        console.error('FEL VID UTSKICK:', error.message);
+        res.status(500).send(`<h1>❌ Något gick fel</h1><p>Felet är: ${error.message}</p><a href="/">Försök igen</a>`);
     }
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server körs på port ${PORT}`));
+app.listen(PORT, () => console.log(`Servern är vaken på port ${PORT}`));
