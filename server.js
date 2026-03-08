@@ -5,19 +5,18 @@ require('dotenv').config();
 const app = express();
 app.use(express.urlencoded({ extended: true }));
 
-// 1. HTML-gränssnittet
 app.get('/', (req, res) => {
     res.send(`
+        <style>body { font-family: sans-serif; padding: 20px; }</style>
         <h2>Skicka ett mejl</h2>
         <form action="/send" method="POST">
-            <input type="email" name="to" placeholder="Mottagarens mejl" required><br><br>
-            <textarea name="message" placeholder="Ditt meddelande"></textarea><br><br>
-            <button type="submit">Skicka mejl</button>
+            <input type="email" name="to" placeholder="Mottagarens mejl" required style="padding:10px; width:100%; max-width:300px;"><br><br>
+            <textarea name="message" placeholder="Ditt meddelande" style="padding:10px; width:100%; max-width:300px; height:100px;"></textarea><br><br>
+            <button type="submit" style="background:#007bff; color:white; border:none; padding:10px 20px; border-radius:5px;">Skicka mejl</button>
         </form>
     `);
 });
 
-// 2. Logiken för att skicka mejl
 app.post('/send', async (req, res) => {
     const { to, message } = req.body;
 
@@ -25,7 +24,7 @@ app.post('/send', async (req, res) => {
         service: 'gmail',
         auth: {
             user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS // Ditt App-lösenord
+            pass: process.env.EMAIL_PASS
         }
     });
 
@@ -33,14 +32,15 @@ app.post('/send', async (req, res) => {
         await transporter.sendMail({
             from: process.env.EMAIL_USER,
             to: to,
-            subject: 'Hälsning från min Node.js-app',
+            subject: 'Test-mejl från min Node-app',
             text: message
         });
-        res.send('Mejlet har skickats! <a href="/">Tillbaka</a>');
+        res.send('<h1>✅ Succé! Mejlet har skickats.</h1><a href="/">Skicka ett till</a>');
     } catch (error) {
-        res.status(500).send('Något gick fel: ' + error.message);
+        // Detta skriver ut det EXAKTA felet så vi kan se vad som är fel
+        res.status(500).send(`<h1>❌ Det gick inte!</h1><p>Felmeddelande: ${error.message}</p><a href="/">Försök igen</a>`);
     }
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Servern körs på port ${PORT}`));
+app.listen(PORT, () => console.log(`Server körs på port ${PORT}`));
